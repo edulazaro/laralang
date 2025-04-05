@@ -51,6 +51,61 @@ LocalizedRoute::get('dashboard', [
 ], fn () => 'ok')->middleware('auth')->name('dashboard');
 ```
 
+
+## Configuration
+
+Publish the Laralang configuration using this command
+
+```bash
+php artisan vendor:publish  --tag="locales"
+```
+
+If it does not work, then try:
+
+```bash
+php artisan vendor:publish --provider="EduLazaro\Laralang\LaralangServiceProvider" --tag="locales"
+```
+
+This will generate the `locales.php` file in the `config` folder. This configuration file defines the supported locales and other localization-related settings for your Laravel application. It provides the flexibility to define language preferences, URL prefixes, and potential domain mappings for each locale. Below is a breakdown of the different sections of the locales.php configuration file.
+
+### Supported Locales
+
+The `locales` array defines the languages that your application supports. You can list multiple languages here, and the system will handle the routes accordingly.
+
+```php
+'locales' => [
+    'en',   // English (default)
+    'es',   // Spanish
+    'fr',   // French
+],
+```
+
+Add or remove any locales as per your application's requirements.
+
+### Locale Prefixes
+
+The `prefixes` array allows you to specify custom URL prefixes for each locale. When a locale has a prefix defined, URLs in that locale will have the prefix as part of the path. You do not need to specify all prefixes, as by default the locale name will be used as a prefix except for the default language. However, if you want to customize the prefixes:
+
+```php
+'prefixes' => [
+    'en' => '',   // No prefix for English (URL: /)
+    'es' => 'es', // 'es' prefix for Spanish (URL: /es)
+    'fr' => 'fr', // 'fr' prefix for French (URL: /fr)
+],
+```
+
+### Domain Settings  (Future Support)
+
+The `domains` array allows you to define custom domains for specific locales. If your application requires different domains for different languages (e.g., example.com for English, es.example.com for Spanish), or even totally different tlds, which is a bit challenging in Laravel,  you can configure it here:
+
+```php
+'domains' => [
+    'en' => null,   // No custom domain for English
+    'es' => null,   // No custom domain for Spanish
+    'fr' => null,   // No custom domain for French
+],
+```
+
 ## How to Register Localized Routes
 
 To register the localized routes, you can use the `LocalizedRoute::get()`, `LocalizedRoute::post()`, or any other HTTP verb method like Laravel's regular routes:
