@@ -4,7 +4,7 @@ namespace EduLazaro\Laralang;
 
 use Illuminate\Support\Facades\Route;
 use \Illuminate\Routing\Route as LaravelRoute;
-use EduLazaro\Laralang\Http\Middleware\SetLocale;
+use EduLazaro\Laralang\Http\Middleware\SetRouteLocale;
 
 /**
  * Class LocalizedRoute
@@ -68,7 +68,7 @@ class LocalizedRoute
                 is_array($action) ? $action : ['uses' => $action]
             );
 
-            $route->middleware([SetLocale::class]);
+            $route->middleware([SetRouteLocale::class]);
             
             $router = app('router');
             if ($router->hasGroupStack()) {

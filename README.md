@@ -167,6 +167,85 @@ route('es.dashboard') // Spanish
 
 However if you run just `route('dashboard')` it will also work, and it will redirect to the route named `dashboard` of the current locale.
 
+## Middleware
+
+Laralang comes with several optional middlewares that you can apply depending on your needs. These middlewares help you control how the locale is detected and applied throughout your application.
+
+You can assign these middlewares to your route groups just like any Laravel middleware. For most applications, you can simply use `SetSmartLocale` globally to cover all use cases.
+
+For specific sections of your app, you can fine-tune and assign different middlewares to different route groups.
+
+### SetRouteLocale
+
+This middleware will detect the locale from the URL prefix and apply it.
+
+If you have localized routes with prefixes (e.g., /es/dashboard), this middleware ensures the application locale matches the URL.
+
+```php
+use EduLazaro\Laralang\Http\Middleware\SetRouteLocale;
+
+Route::middleware(['web', SetRouteLocale::class])
+    ->group(function () {
+        // routes with locale prefix
+    });
+```
+
+### SetSessionLocale
+
+This middleware applies the locale stored in the user session.
+
+Useful for internal routes like dashboards or admin panels, where the locale is determined once and stored in the session.
+
+```php
+use EduLazaro\Laralang\Http\Middleware\SetSessionLocale;
+
+Route::middleware(['web', SetSessionLocale::class])
+    ->group(function () {
+        // admin or internal routes
+    });
+```
+
+### SetBrowserLocale
+
+This middleware reads the locale from the browser's Accept-Language header only if no session locale is already set.
+
+On first visit, it detects the preferred browser language and stores it in the session. Good for public routes to auto-detect a first-time visitor's language and store it for subsequent requests.
+
+```php
+use EduLazaro\Laralang\Http\Middleware\SetBrowserLocale;
+
+Route::middleware(['web', SetBrowserLocale::class])
+    ->group(function () {
+        // public routes
+    });
+```
+
+### SetSmartLocale
+
+This is the recommended "universal" middleware.
+
+It combines all the previous strategies in this priority order:
+
+* Route prefix locale
+* Session locale or Browser locale (fallback)
+
+If you want to apply localization globally without thinking about it, this middleware is for you.
+
+```php
+use EduLazaro\Laralang\Http\Middleware\SetSmartLocale;
+
+Route::middleware(['web', SetSmartLocale::class])
+    ->group(function () {
+        // all routes (public, admin, etc.)
+    });
+```
+
+### SetRouteLocale
+
+This middleware will detect the locale from the URL prefix and apply it.
+
+If you have localized routes with prefixes (e.g., /es/dashboard), this middleware ensures the application locale matches the URL.
+
 ## License
 
 Larakeep is open-sourced software licensed under the [MIT license](LICENSE.md).

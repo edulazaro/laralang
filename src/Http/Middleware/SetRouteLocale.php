@@ -6,8 +6,9 @@ use Closure;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\App;
 use Symfony\Component\HttpFoundation\Response;
+use EduLazaro\Laralang\Http\Middleware\SetSessionLocale;
 
-class SetLocale
+class SetRouteLocale
 {
     /**
      * Handle an incoming request.
@@ -18,6 +19,10 @@ class SetLocale
      */
     public function handle(Request $request, Closure $next)
     {
+        if ($request->header('X-Livewire') || $request->ajax()) {
+            return app(SetSessionLocale::class)->handle($request, $next);
+        }
+
         $locales = config('locales.locales',  [config('app.locale')]);
         $defaultLocale = config('app.locale', config('app.fallback_locale', 'en'));
         $segment = $request->segment(1);
@@ -26,13 +31,14 @@ class SetLocale
             return redirect()->to($this->removePrefixFromUri($request->getRequestUri(), $segment), 301);
         }
 
-        if (in_array($segment, $locales)) {
-            App::setLocale($segment);
-        } 
+        $locale = in_array($segment, $locales) ? $segment : session('locale', $defaultLocale);
 
-        $locale = in_array($segment, $locales) ? $segment : $defaultLocale;
         App::setLocale($locale);
-  
+
+        if (session()->get('locale') !== $locale) {
+            session()->put('locale', $locale);
+        }
+
         return $next($request);
     }
 
