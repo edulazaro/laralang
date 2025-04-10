@@ -46,4 +46,23 @@ return [
         'es' => null,
         'fr' => null,
     ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | Use Optimised URL Generator
+    |--------------------------------------------------------------------------
+    |
+    | By default, Laralang replaces Laravel's URL generator to ensure that
+    | all generated URLs (such as those created with the `route()` helper)
+    | automatically include the correct locale prefix.
+    |
+    | This allows you to write routes like `route('dashboard')`, and Laralang
+    | will generate a localized URL based on the current locale context,
+    | without manually specifying the locale each time.
+    |
+    | If you prefer to use Laravel's default URL generator and handle
+    | localization manually, you can disable this by setting it to false.
+    |
+    */
+    'override_url_generator' => true,
 ];

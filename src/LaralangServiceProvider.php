@@ -22,7 +22,9 @@ class LaralangServiceProvider extends ServiceProvider
             __DIR__.'/../config/locales.php' => config_path('locales.php'),
         ], 'locales');
 
-        $this->registerUrlGenerator();
+        if (config('locales.override_url_generator', true)) {
+            $this->registerUrlGenerator();
+        }
     }
 
     /**
