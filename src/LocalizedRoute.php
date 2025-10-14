@@ -68,8 +68,9 @@ class LocalizedRoute
                 is_array($action) ? $action : ['uses' => $action]
             );
 
+            $route->setContainer(app());
             $route->middleware([SetRouteLocale::class]);
-            
+
             $router = app('router');
             if ($router->hasGroupStack()) {
                 $route->setAction($router->mergeWithLastGroup(
