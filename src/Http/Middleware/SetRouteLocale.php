@@ -31,7 +31,17 @@ class SetRouteLocale
             return redirect()->to($this->removePrefixFromUri($request->getRequestUri(), $segment), 301);
         }
 
-        $locale = in_array($segment, $locales) ? $segment : session('locale', $defaultLocale);
+        // Try to detect locale from route name first (for LocalizedRoute)
+        $locale = null;
+        $routeName = $request->route()?->getName();
+        if ($routeName && preg_match('/^(' . implode('|', $locales) . ')\./', $routeName, $matches)) {
+            $locale = $matches[1];
+        }
+
+        // Fallback to segment or session
+        if (!$locale) {
+            $locale = in_array($segment, $locales) ? $segment : session('locale', $defaultLocale);
+        }
 
         App::setLocale($locale);
 
