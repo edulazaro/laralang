@@ -4,6 +4,7 @@ namespace EduLazaro\Laralang;
 
 use Illuminate\Support\ServiceProvider;
 use EduLazaro\Laralang\Routing\UrlGenerator;
+use EduLazaro\Laralang\Http\Middleware\ValidateLocalizedSignature;
 
 class LaralangServiceProvider extends ServiceProvider
 {
@@ -25,6 +26,10 @@ class LaralangServiceProvider extends ServiceProvider
         if (config('locales.override_url_generator', true)) {
             $this->registerUrlGenerator();
         }
+
+        // Register signed_localized middleware alias
+        $router = $this->app['router'];
+        $router->aliasMiddleware('signed_localized', ValidateLocalizedSignature::class);
     }
 
     /**
@@ -64,8 +69,3 @@ class LaralangServiceProvider extends ServiceProvider
         });
     }
 }
-
-
-
-
-
