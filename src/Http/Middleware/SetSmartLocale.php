@@ -18,6 +18,10 @@ class SetSmartLocale
      */
     public function handle(Request $request, Closure $next)
     {
+        if ($request->attributes->get(SetRouteLocale::RESOLVED_FLAG)) {
+            return $next($request);
+        }
+
         $locales = config('locales.locales', [config('app.locale')]);
         $segment = $request->segment(1);
 

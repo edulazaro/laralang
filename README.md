@@ -18,6 +18,13 @@ With Laralang, you can define a route for each language, and the package will au
 - Redirect to any specific locale also via the `route` helper.
 - Support for Ziggy
 
+## Requirements
+
+- PHP `^8.2`
+- Laravel `^11.0`
+
+For Laravel 10 support use Laralang `^1.5`. See [UPGRADING.md](UPGRADING.md) for the 1.x → 2.0 migration guide.
+
 ## Installation
 
 Execute the following command in your Laravel root project directory:
@@ -167,6 +174,85 @@ route('es.dashboard') // Spanish
 
 However if you run just `route('dashboard')` it will also work, and it will redirect to the route named `dashboard` of the current locale.
 
+## Generating Alternate URLs
+
+For language switchers, `hreflang` tags in the `<head>` for SEO, multi-locale sitemaps and canonical URL switching, Laralang exposes `Laralang::alternates()`. It returns a map of every configured locale to the URL of the current route in that locale, without the usual hand-rolled `App::setLocale()` swapping.
+
+```php
+use EduLazaro\Laralang\Facades\Laralang;
+
+Laralang::alternates();
+// [
+//   'en' => 'https://example.com/services',
+//   'es' => 'https://example.com/es/servicios',
+//   'ca' => 'https://example.com/ca/serveis',
+// ]
+```
+
+Typical `hreflang` usage inside a Blade `<head>`:
+
+```blade
+@foreach (Laralang::alternates() as $locale => $url)
+    <link rel="alternate" hreflang="{{ $locale }}" href="{{ $url }}" />
+@endforeach
+```
+
+A typical language switcher:
+
+```blade
+<ul>
+    @foreach (Laralang::alternates() as $locale => $url)
+        <li><a href="{{ $url }}">{{ strtoupper($locale) }}</a></li>
+    @endforeach
+</ul>
+```
+
+The signature is:
+
+```php
+Laralang::alternates(array $params = [], bool $absolute = true): array
+```
+
+- `$params` — override route parameters. Defaults to the current route's resolved parameters, so dynamic segments like `{slug}` are carried into every locale URL automatically.
+- `$absolute` — set to `false` for relative paths instead of absolute URLs (useful for sitemaps where you build the host yourself).
+
+Behaviour notes:
+
+- If a route is declared in a subset of locales (e.g. `['en', 'es']` but not `ca`), the returned array only contains keys for the locales that actually have a registered route. No dead links.
+- Called on a plain non-localized route (`Route::get('foo')->name('foo')`), it degrades gracefully and returns `[current_locale => current_url]`, so you can always iterate safely.
+- Outside of a matched request, or on a route with no name, it returns `[]`.
+
+A global helper is also available if you prefer to avoid the facade import:
+
+```php
+laralang_alternates();                         // same as Laralang::alternates()
+laralang_alternates(['slug' => 'custom']);     // with param override
+laralang_alternates([], false);                // relative paths
+```
+
+## Using `routeIs()` with localized routes
+
+Because `LocalizedRoute` registers one route per locale with names like `en.services`, `es.services` and `fr.services`, a plain `routeIs('services')` check used to silently never match, forcing users to write `routeIs('*.services')` in navigation active-state helpers.
+
+Laralang now ships a thin `EduLazaro\Laralang\Routing\Route` subclass that overrides `named()` for `LocalizedRoute` instances only. Plain `Route::get()` routes keep Laravel's default behaviour untouched.
+
+The matching rules are:
+
+- A plain pattern (no locale prefix) matches if the current route name matches the pattern literally **or** if it matches `{anyLocale}.{pattern}`. So `routeIs('services')` is `true` on `en.services`, `es.services` and `fr.services`.
+- A locale-prefixed pattern (e.g. `es.services`) matches only when the prefix equals the current `app()->getLocale()` **and** the current route name matches literally. So `routeIs('es.services')` is `true` only when you are actually on the Spanish variant.
+
+```php
+// On the Spanish variant of /servicios:
+request()->routeIs('services');       // true
+request()->routeIs('es.services');    // true
+request()->routeIs('fr.services');    // false
+
+// Wildcards keep working across locales:
+request()->routeIs('services*');      // true on es.services.show, fr.services.create, etc.
+```
+
+The previous `routeIs('*.services')` workaround still works.
+
 ## Middleware
 
 Laralang comes with several optional middlewares that you can apply depending on your needs. These middlewares help you control how the locale is detected and applied throughout your application.
@@ -174,6 +260,12 @@ Laralang comes with several optional middlewares that you can apply depending on
 You can assign these middlewares to your route groups just like any Laravel middleware. For most applications, you can simply use `SetSmartLocale` globally to cover all use cases.
 
 For specific sections of your app, you can fine-tune and assign different middlewares to different route groups.
+
+### Idempotency
+
+All locale middlewares are idempotent. Applying `SetSmartLocale` to a group and using `LocalizedRoute` (which auto-attaches `SetRouteLocale` per route) is safe — the first middleware to run resolves the locale and the rest become no-ops. Build whatever middleware stack you need without worrying about double execution or duplicate redirects.
+
+If every route is created via `LocalizedRoute`, you do not need to add `SetSmartLocale` to your group — `SetRouteLocale` is already injected per route. Add `SetSmartLocale` only when you have a mix of localized and plain routes and want the plain ones to inherit the session/browser locale.
 
 ### SetRouteLocale
 

@@ -10,6 +10,8 @@ use EduLazaro\Laralang\Http\Middleware\SetSessionLocale;
 
 class SetRouteLocale
 {
+    public const RESOLVED_FLAG = 'laralang.locale_resolved';
+
     /**
      * Handle an incoming request.
      *
@@ -19,6 +21,10 @@ class SetRouteLocale
      */
     public function handle(Request $request, Closure $next)
     {
+        if ($request->attributes->get(self::RESOLVED_FLAG)) {
+            return $next($request);
+        }
+
         if ($request->header('X-Livewire') || $request->ajax()) {
             return app(SetSessionLocale::class)->handle($request, $next);
         }
@@ -48,6 +54,8 @@ class SetRouteLocale
         if (session()->get('locale') !== $locale) {
             session()->put('locale', $locale);
         }
+
+        $request->attributes->set(self::RESOLVED_FLAG, true);
 
         return $next($request);
     }

@@ -3,7 +3,7 @@
 namespace EduLazaro\Laralang;
 
 use Illuminate\Support\Facades\Route;
-use \Illuminate\Routing\Route as LaravelRoute;
+use EduLazaro\Laralang\Routing\Route as LaravelRoute;
 use EduLazaro\Laralang\Http\Middleware\SetRouteLocale;
 
 /**

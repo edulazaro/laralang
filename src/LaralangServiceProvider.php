@@ -23,9 +23,7 @@ class LaralangServiceProvider extends ServiceProvider
             __DIR__.'/../config/locales.php' => config_path('locales.php'),
         ], 'locales');
 
-        if (config('locales.override_url_generator', true)) {
-            $this->registerUrlGenerator();
-        }
+        $this->registerUrlGenerator();
 
         // Register signed_localized middleware alias
         $router = $this->app['router'];
@@ -39,6 +37,8 @@ class LaralangServiceProvider extends ServiceProvider
      */
     public function register()
     {
+        $this->app->singleton(\EduLazaro\Laralang\Laralang::class);
+
         if (class_exists(\Tightenco\Ziggy\BladeRouteGenerator::class)) {
             $this->app->singleton(
                 \Tightenco\Ziggy\BladeRouteGenerator::class,

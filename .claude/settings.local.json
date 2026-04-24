@@ -1,0 +1,14 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(vendor/bin/phpunit --testdox)",
+      "Bash(vendor/bin/phpunit --filter test_plain_laravel_route_matches_with_route_is)",
+      "Bash(composer dump-autoload *)",
+      "Bash(vendor/bin/phpunit tests/Unit/AlternatesTest.php --testdox)",
+      "Bash(vendor/bin/phpunit)",
+      "Bash(vendor/bin/phpunit tests/Unit/LocalizedResourceTest.php --testdox)",
+      "Bash(vendor/bin/phpunit --filter it_supports_except_option)",
+      "Bash(composer update *)"
+    ]
+  }
+}
