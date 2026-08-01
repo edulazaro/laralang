@@ -2,6 +2,7 @@
 
 namespace EduLazaro\Laralang;
 
+use Illuminate\Routing\Router;
 use Illuminate\Support\Facades\Route;
 use EduLazaro\Laralang\Routing\Route as LaravelRoute;
 use EduLazaro\Laralang\Http\Middleware\SetRouteLocale;
@@ -212,6 +213,22 @@ class LocalizedRoute
     public static function apiResource(string $name, array $locales, $controller): LocalizedResource
     {
         return LocalizedResource::api($name, $locales, $controller);
+    }
+
+    /**
+     * Defines a localized route responding to every HTTP method.
+     *
+     * One route per locale is registered, each one answering all the verbs,
+     * exactly like Laravel's Route::any().
+     *
+     * @param string $uri The base URI.
+     * @param array $locales The locales to register.
+     * @param mixed $action Controller or action.
+     * @return static
+     */
+     public static function any(string $uri, array $locales, $action)
+     {
+         return new self($locales, Router::$verbs, $uri, $action);
     }
 
     /**
