@@ -23,10 +23,16 @@ Coming from another localization package? There is a migration guide for each on
 
 ## Features
 
-- Define multilingual routes with one simple API.
-- Automatic locale redirection via usual `route` helper.
-- Redirect to any specific locale also via the `route` helper.
-- Support for Ziggy 2
+- Declare a route once and get a real route per language, each with its own path.
+- `route('dashboard')` resolves to the current language, and `route('es.dashboard')` targets a specific one.
+- A different route model binding per language, so each one can resolve against its own slug column.
+- Localized resources, with the resource name and the `create` and `edit` segments translated.
+- `Laralang::alternates()` returns the current page in every language, ready for language switchers, `hreflang` tags and multi locale sitemaps.
+- `routeIs('dashboard')` matches any language, so navigation active states keep working.
+- A localized fallback that rescues a URL living under another language instead of returning a 404.
+- Locale detection from the URL, the session or the browser, with one middleware per strategy.
+- Ziggy 2 support, so `route()` behaves the same in JavaScript.
+- Tested against PHP 8.2 to 8.5 and Laravel 11, 12 and 13 on every push.
 
 ## Requirements
 
