@@ -26,12 +26,4 @@ class ConfigTest extends TestCase
         }
     }
 
-    public function test_it_has_default_domains_config()
-    {
-        $config = config('locales.domains');
-
-        $this->assertIsArray($config);
-
-        $this->assertArrayHasKey('en', $config);
-    }
 }

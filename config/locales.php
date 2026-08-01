@@ -31,21 +31,6 @@ return [
         'fr' => 'fr', // French (URL: /fr)
     ],
 
-    /*
-    |--------------------------------------------------------------------------
-    | Locale Domains (Future Support)
-    |--------------------------------------------------------------------------
-    |
-    | Define optional domains per locale.
-    | Leave null if no dedicated domain is required.
-    |
-    */
-
-    'domains' => [
-        'en' => null,
-        'es' => null,
-        'fr' => null,
-    ],
 
     /*
     |--------------------------------------------------------------------------
@@ -66,4 +51,21 @@ return [
     */
 
     'fallback' => false,
+
+    /*
+    |--------------------------------------------------------------------------
+    | Redirect Cache Lifetime
+    |--------------------------------------------------------------------------
+    |
+    | How long, in seconds, a browser or CDN may cache the permanent redirects
+    | this package emits.
+    |
+    | Their destination is computed from the prefixes and the locale order, so
+    | changing either leaves the cached ones pointing at URLs that no longer
+    | exist, and a permanent redirect cannot be revoked. An explicit lifetime
+    | bounds that window. Raise it once your URLs are settled.
+    |
+    */
+
+    'redirect_max_age' => 86400,
 ];

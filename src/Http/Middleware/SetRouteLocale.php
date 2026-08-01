@@ -39,7 +39,12 @@ class SetRouteLocale
         // is configured with a prefix of its own, that prefix is the canonical
         // one and there is nothing to strip.
         if ($segment === $defaultLocale && LocalePrefixes::get($defaultLocale) === '') {
-            return redirect()->to($this->removePrefixFromUri($request->getRequestUri(), $segment), 301);
+            return redirect()
+                ->to($this->removePrefixFromUri($request->getRequestUri(), $segment), 301)
+                // Bounded on purpose: this destination comes from the configured
+                // prefixes, and a permanent redirect cannot be revoked once a
+                // browser has cached it.
+                ->header('Cache-Control', 'max-age=' . LocalePrefixes::redirectMaxAge());
         }
 
         // Try to detect locale from route name first (for LocalizedRoute)

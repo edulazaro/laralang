@@ -87,7 +87,7 @@ If it does not work, then try:
 php artisan vendor:publish --provider="EduLazaro\Laralang\LaralangServiceProvider" --tag="locales"
 ```
 
-This will generate the `locales.php` file in the `config` folder. This configuration file defines the supported locales and other localization-related settings for your Laravel application. It provides the flexibility to define language preferences, URL prefixes, and potential domain mappings for each locale. Below is a breakdown of the different sections of the locales.php configuration file.
+This will generate the `locales.php` file in the `config` folder. It defines the languages your application supports, their URL prefixes and how the package behaves around them. Below is a breakdown of each section.
 
 ### Supported Locales
 
@@ -157,17 +157,6 @@ The painful case is exactly this section. A site runs with English at the root, 
 
 There is no way to revoke a `301` that is already out there, so treat the shape of your URLs as a decision to make before launch. If you have to change it anyway, expect returning visitors to carry stale redirects until their cache expires, and consider turning the fallback off during the transition so they get a plain 404 instead of a loop.
 
-### Domain Settings  (Future Support)
-
-The `domains` array allows you to define custom domains for specific locales. If your application requires different domains for different languages (e.g., example.com for English, es.example.com for Spanish), or even totally different tlds, which is a bit challenging in Laravel,  you can configure it here:
-
-```php
-'domains' => [
-    'en' => null,   // No custom domain for English
-    'es' => null,   // No custom domain for Spanish
-    'fr' => null,   // No custom domain for French
-],
-```
 
 ## How to Register Localized Routes
 

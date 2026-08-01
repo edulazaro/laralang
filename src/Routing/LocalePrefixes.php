@@ -36,6 +36,21 @@ class LocalePrefixes
     }
 
     /**
+     * How long a permanent redirect may be cached, in seconds.
+     *
+     * The redirects this package emits are computed from the configured
+     * prefixes and locale order, so a config change makes the ones already
+     * cached point at URLs that no longer exist. A permanent redirect cannot
+     * be revoked, but an explicit lifetime bounds the damage.
+     *
+     * @return int
+     */
+    public static function redirectMaxAge(): int
+    {
+        return (int) config('locales.redirect_max_age', 86400);
+    }
+
+    /**
      * Get the URL prefix of every configured locale, keyed by locale.
      *
      * @return array<string, string>

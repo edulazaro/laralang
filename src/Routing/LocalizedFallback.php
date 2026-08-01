@@ -35,7 +35,10 @@ class LocalizedFallback
         if ($this->isRoot($request) && LocalePrefixes::get(config('app.locale')) !== '') {
             return redirect()
                 ->to('/' . LocalePrefixes::get($this->preferredLocale($request)), 302)
-                ->header('Vary', 'Accept-Language');
+                ->header('Vary', 'Accept-Language')
+                // The destination depends on the visitor, so it must not be
+                // cached by anyone in the middle.
+                ->header('Cache-Control', 'no-store, private');
         }
 
         $target = $this->resolve($request);
@@ -44,7 +47,8 @@ class LocalizedFallback
             throw new NotFoundHttpException;
         }
 
-        return redirect()->to($target, 301);
+        return redirect()->to($target, 301)
+            ->header('Cache-Control', 'max-age=' . LocalePrefixes::redirectMaxAge());
     }
 
     /**

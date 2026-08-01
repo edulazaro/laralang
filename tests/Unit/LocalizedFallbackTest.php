@@ -91,6 +91,13 @@ class LocalizedFallbackTest extends TestCase
         $this->post('/servicios')->assertStatus(405);
     }
 
+    public function test_permanent_redirects_carry_a_bounded_cache_lifetime()
+    {
+        config(['locales.redirect_max_age' => 3600]);
+
+        $this->get('/servicios')->assertHeader('Cache-Control', 'max-age=3600, private');
+    }
+
     public function test_it_is_not_registered_unless_asked_for()
     {
         $fallbacks = collect(Route::getRoutes()->getRoutes())
