@@ -16,7 +16,7 @@ With Laralang, you can define a route for each language, and the package will au
 - Define multilingual routes with one simple API.
 - Automatic locale redirection via usual `route` helper.
 - Redirect to any specific locale also via the `route` helper.
-- Support for Ziggy
+- Support for Ziggy 1 and Ziggy 2
 
 ## Requirements
 
@@ -173,6 +173,17 @@ route('es.dashboard') // Spanish
 ```
 
 However if you run just `route('dashboard')` it will also work, and it will redirect to the route named `dashboard` of the current locale.
+
+## Ziggy
+
+If Ziggy is installed, Laralang replaces its Blade route generator so the routes of the current locale are also published under their unprefixed name. That way `route('dashboard')` behaves in JavaScript exactly like it does in PHP, while `route('es.dashboard')` keeps working too.
+
+Both major versions are supported and detected automatically, with no configuration:
+
+* Ziggy 2, namespace `Tighten\Ziggy`.
+* Ziggy 1, namespace `Tightenco\Ziggy`.
+
+A route registered directly under the unprefixed name, for example a plain `Route::get(...)->name('dashboard')`, is never overwritten by the alias.
 
 ## Generating Alternate URLs
 

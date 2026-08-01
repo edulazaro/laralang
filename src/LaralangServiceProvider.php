@@ -39,6 +39,27 @@ class LaralangServiceProvider extends ServiceProvider
     {
         $this->app->singleton(\EduLazaro\Laralang\Laralang::class);
 
+        $this->registerZiggy();
+    }
+
+    /**
+     * Replace Ziggy's Blade route generator so the routes of the current
+     * locale are also exposed under their unprefixed name. Ziggy 2 moved to
+     * the Tighten namespace, so both major versions are supported.
+     *
+     * @return void
+     */
+    protected function registerZiggy()
+    {
+        if (class_exists(\Tighten\Ziggy\BladeRouteGenerator::class)) {
+            $this->app->singleton(
+                \Tighten\Ziggy\BladeRouteGenerator::class,
+                \EduLazaro\Laralang\Routing\Ziggy2\LocalizedBladeRouteGenerator::class
+            );
+
+            return;
+        }
+
         if (class_exists(\Tightenco\Ziggy\BladeRouteGenerator::class)) {
             $this->app->singleton(
                 \Tightenco\Ziggy\BladeRouteGenerator::class,
