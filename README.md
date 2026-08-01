@@ -147,6 +147,16 @@ Since no route is registered at `/` any more, turn the localized fallback on so 
 
 It sends the visitor to their own language, taken from their stored choice and then from `Accept-Language`, falling back to the default. That redirect is a `302` with `Vary: Accept-Language`, never a `301`, because the destination depends on who is asking and a permanent one would be cached and pin a single language for everyone behind it.
 
+### Decide the prefixes before going live
+
+Everything else the package redirects is a `301`, which is the right status because the destination depends only on the path. But permanent means permanent: browsers and CDNs cache it, and a cached `301` is never re-checked. The client stops asking.
+
+Those redirects are computed from `prefixes` and the order of `locales`, so changing either after the site is public leaves old clients following redirects to URLs that no longer exist.
+
+The painful case is exactly this section. A site runs with English at the root, so `/en/about` has been answering `301` to `/about` for months. You then prefix every language, and `/en/about` becomes the canonical URL. A returning visitor requests it, their browser applies the cached redirect without asking, and lands on `/about`, which no longer exists. With the localized fallback on it is worse than a 404: `/about` is rescued back to `/en/about`, the cached redirect fires again, and the browser gives up with a redirect loop.
+
+There is no way to revoke a `301` that is already out there, so treat the shape of your URLs as a decision to make before launch. If you have to change it anyway, expect returning visitors to carry stale redirects until their cache expires, and consider turning the fallback off during the transition so they get a plain 404 instead of a loop.
+
 ### Domain Settings  (Future Support)
 
 The `domains` array allows you to define custom domains for specific locales. If your application requires different domains for different languages (e.g., example.com for English, es.example.com for Spanish), or even totally different tlds, which is a bit challenging in Laravel,  you can configure it here:
