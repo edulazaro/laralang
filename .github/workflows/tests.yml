@@ -130,9 +130,6 @@ jobs:
           - name: 'PHP nightly'
             php: 'nightly'
             laravel: ''
-          - name: 'Laravel dev-master'
-            php: '8.4'
-            laravel: 'dev-master'
 
     steps:
       - name: Checkout
