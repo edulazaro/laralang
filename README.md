@@ -3,8 +3,11 @@
 # Laralang for Laravel
 
 <p align="center">
-    <a href="https://packagist.org/packages/edulazaro/laralang"><img src="https://img.shields.io/packagist/dt/edulazaro/laralang" alt="Total Downloads"></a>
+    <a href="https://github.com/edulazaro/laralang/actions/workflows/tests.yml"><img src="https://github.com/edulazaro/laralang/actions/workflows/tests.yml/badge.svg" alt="Tests"></a>
     <a href="https://packagist.org/packages/edulazaro/laralang"><img src="https://img.shields.io/packagist/v/edulazaro/laralang" alt="Latest Stable Version"></a>
+    <a href="https://packagist.org/packages/edulazaro/laralang"><img src="https://img.shields.io/packagist/dt/edulazaro/laralang" alt="Total Downloads"></a>
+    <a href="https://packagist.org/packages/edulazaro/laralang"><img src="https://img.shields.io/packagist/php-v/edulazaro/laralang" alt="PHP Version"></a>
+    <a href="https://github.com/edulazaro/laralang/blob/main/LICENSE.md"><img src="https://img.shields.io/packagist/l/edulazaro/laralang" alt="License"></a>
 </p>
 
 ## Introduction
@@ -13,7 +16,10 @@ Laralang is a Laravel package that allows you to create localized routes for dif
 
 With Laralang, you can define a route for each language, and the package will automatically generate routes for the specified locales. It provides an efficient way to handle localized URIs and ensures that the URL structure is properly mapped to the language-specific paths.
 
-Coming from another localization package? See the migration guides for [mcamara/laravel-localization](MIGRATING-FROM-MCAMARA.md) and [niels-numbers/laravel-localizer](MIGRATING-FROM-LARAVEL-LOCALIZER.md).
+Coming from another localization package? There is a migration guide for each one:
+
+- [Migrating from mcamara/laravel-localization](MIGRATING-FROM-MCAMARA.md)
+- [Migrating from niels-numbers/laravel-localizer](MIGRATING-FROM-LARAVEL-LOCALIZER.md)
 
 ## Features
 
@@ -24,10 +30,12 @@ Coming from another localization package? See the migration guides for [mcamara/
 
 ## Requirements
 
-- PHP `^8.2`
-- Laravel `^11.0`
+- PHP `8.2`, `8.3`, `8.4` and `8.5`
+- Laravel `11`, `12` and `13`
 
-For Laravel 10 support use Laralang `^1.5`. See [UPGRADING.md](UPGRADING.md) for the 1.x → 2.0 migration guide.
+Every combination of those is covered by the test suite on each push, and once a week so a new release that breaks the package shows up here first.
+
+For Laravel 10 support use Laralang `^1.5`. See [UPGRADING.md](UPGRADING.md) for the 1.x to 2.0 migration guide.
 
 ## Installation
 
@@ -293,12 +301,9 @@ However if you run just `route('dashboard')` it will also work, and it will redi
 
 ## Ziggy
 
-If Ziggy is installed, Laralang replaces its Blade route generator so the routes of the current locale are also published under their unprefixed name. That way `route('dashboard')` behaves in JavaScript exactly like it does in PHP, while `route('es.dashboard')` keeps working too.
+If Ziggy 2 is installed, Laralang replaces its Blade route generator so the routes of the current locale are also published under their unprefixed name. That way `route('dashboard')` behaves in JavaScript exactly like it does in PHP, while `route('es.dashboard')` keeps working too.
 
-Both major versions are supported and detected automatically, with no configuration:
-
-* Ziggy 2, namespace `Tighten\Ziggy`.
-* Ziggy 1, namespace `Tightenco\Ziggy`.
+It is detected automatically and needs no configuration. Ziggy 1 is not supported, since it reached its last release before Laravel 11, which is the minimum this package requires.
 
 A route registered directly under the unprefixed name, for example a plain `Route::get(...)->name('dashboard')`, is never overwritten by the alias.
 
