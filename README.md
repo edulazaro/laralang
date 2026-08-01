@@ -16,11 +16,6 @@ Laralang is a Laravel package that allows you to create localized routes for dif
 
 With Laralang, you can define a route for each language, and the package will automatically generate routes for the specified locales. It provides an efficient way to handle localized URIs and ensures that the URL structure is properly mapped to the language-specific paths.
 
-Coming from another localization package? There is a migration guide for each one:
-
-- [Migrating from mcamara/laravel-localization](MIGRATING-FROM-MCAMARA.md)
-- [Migrating from niels-numbers/laravel-localizer](MIGRATING-FROM-LARAVEL-LOCALIZER.md)
-
 ## Features
 
 - Declare a route once and get a real route per language, each with its own path.
@@ -41,7 +36,16 @@ Coming from another localization package? There is a migration guide for each on
 
 Every combination of those is covered by the test suite on each push, and once a week so a new release that breaks the package shows up here first.
 
-For Laravel 10 support use Laralang `^1.5`. See [UPGRADING.md](UPGRADING.md) for the 1.x to 2.0 migration guide.
+For Laravel 10 support use Laralang `^1.5`.
+
+## Migration
+
+Coming from another localization package? There is a migration guide for each one:
+
+- [Migrating from mcamara/laravel-localization](MIGRATING-FROM-MCAMARA.md)
+- [Migrating from niels-numbers/laravel-localizer](MIGRATING-FROM-LARAVEL-LOCALIZER.md)
+
+Already on Laralang 1.x? See [UPGRADING.md](UPGRADING.md) for the 1.x to 2.0 guide.
 
 ## Installation
 
