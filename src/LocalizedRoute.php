@@ -136,6 +136,19 @@ class LocalizedRoute
     }
 
     /**
+     * Defines a localized PUT route.
+     *
+     * @param string $uri The base URI.
+     * @param array $locales The locales to register.
+     * @param mixed $action Controller or action.
+     * @return static
+     */
+    public static function put(string $uri, array $locales, $action)
+    {
+        return new self($locales, ['PUT'], $uri, $action);
+    }
+
+    /**
      * Defines a localized PATCH route.
      *
      * @param string $uri The base URI.
@@ -159,6 +172,46 @@ class LocalizedRoute
     public static function delete(string $uri, array $locales, $action)
     {
         return new self($locales, ['DELETE'], $uri, $action);
+    }
+
+    /**
+     * Defines a localized OPTIONS route.
+     *
+     * @param string $uri The base URI.
+     * @param array $locales The locales to register.
+     * @param mixed $action Controller or action.
+     * @return static
+     */
+    public static function options(string $uri, array $locales, $action)
+    {
+        return new self($locales, ['OPTIONS'], $uri, $action);
+    }
+
+    /**
+     * Defines a localized resource. Bridge to LocalizedResource, which is the
+     * canonical entry point, so both spellings do exactly the same.
+     *
+     * @param string $name The base resource name.
+     * @param array $locales The locales to register.
+     * @param mixed $controller The resource controller.
+     * @return LocalizedResource
+     */
+    public static function resource(string $name, array $locales, $controller): LocalizedResource
+    {
+        return LocalizedResource::make($name, $locales, $controller);
+    }
+
+    /**
+     * Defines a localized API resource, without the create and edit routes.
+     *
+     * @param string $name The base resource name.
+     * @param array $locales The locales to register.
+     * @param mixed $controller The resource controller.
+     * @return LocalizedResource
+     */
+    public static function apiResource(string $name, array $locales, $controller): LocalizedResource
+    {
+        return LocalizedResource::api($name, $locales, $controller);
     }
 
     /**

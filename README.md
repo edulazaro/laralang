@@ -119,7 +119,7 @@ The `domains` array allows you to define custom domains for specific locales. If
 
 ## How to Register Localized Routes
 
-Use `LocalizedRoute::get()`, `LocalizedRoute::post()`, `LocalizedRoute::patch()`, `LocalizedRoute::delete()` or `LocalizedRoute::match()`, the same way you would use Laravel's regular routes:
+Use `LocalizedRoute::get()`, `LocalizedRoute::post()`, `LocalizedRoute::put()`, `LocalizedRoute::patch()`, `LocalizedRoute::delete()`, `LocalizedRoute::options()` or `LocalizedRoute::match()`, the same way you would use Laravel's regular routes:
 
 ```php
 use App\Http\Controllers\ProfileController;
@@ -179,6 +179,81 @@ Route::prefix('admin')->group(function () {
 
 Note that `fr` reuses `dashboard` because it was listed without a translation, while `es` uses its own `panel`. Group middleware, name prefixes and everything else you chain on the group keep working as usual.
 
+## Localized Resources
+
+`LocalizedResource` registers a Laravel resource once per locale. Laravel's own resource registrar builds the routes, so `only()`, `except()`, `names()`, `middleware()`, `shallow()` and `scoped()` keep working exactly as you know them, applied to every locale at once.
+
+```php
+use App\Http\Controllers\PhotoController;
+use EduLazaro\Laralang\LocalizedResource;
+
+LocalizedResource::make('photos', [
+    'en',
+    'es' => 'fotos',
+], PhotoController::class);
+```
+
+| URL | Route name |
+|---|---|
+| `/photos` | `en.photos.index` |
+| `/photos/create` | `en.photos.create` |
+| `/photos/{photo}` | `en.photos.show` |
+| `/es/fotos` | `es.photos.index` |
+| `/es/fotos/create` | `es.photos.create` |
+| `/es/fotos/{photo}` | `es.photos.show` |
+
+Two things are deliberate here. The route names use the base resource name in every locale, so `route('photos.index')` resolves to the current language like any other localized route. And the route parameter is `{photo}` in every locale, derived from the base name too, so a single `show(Photo $photo)` controller signature keeps working no matter which language resolved the URL.
+
+The first parameter is the base name, used for names and parameters. The second lists the locales, exactly like the other methods. The third is the resource controller.
+
+### Translating create and edit
+
+Pass an array instead of a string to give a locale its own `create` and `edit` segments:
+
+```php
+LocalizedResource::make('photos', [
+    'en',
+    'es' => ['uri' => 'fotos', 'verbs' => ['create' => 'crear', 'edit' => 'editar']],
+], PhotoController::class);
+```
+
+| URL | Route name |
+|---|---|
+| `/photos/create` | `en.photos.create` |
+| `/photos/{photo}/edit` | `en.photos.edit` |
+| `/es/fotos/crear` | `es.photos.create` |
+| `/es/fotos/{photo}/editar` | `es.photos.edit` |
+
+Without the `verbs` key those two segments stay in English for every locale.
+
+### API resources
+
+`LocalizedResource::api()` registers the same resource without the `create` and `edit` routes:
+
+```php
+LocalizedResource::api('photos', ['en', 'es' => 'fotos'], PhotoController::class);
+```
+
+Localizing an API is rarely what you want, since its URLs are consumed by machines and the language is usually negotiated with the `Accept-Language` header. It is here for APIs meant to be browsed, not for integration endpoints.
+
+### Chaining options
+
+Anything you would chain on `Route::resource()` is forwarded to every locale:
+
+```php
+LocalizedResource::make('photos', ['en', 'es' => 'fotos'], PhotoController::class)
+    ->only(['index', 'show'])
+    ->middleware('auth');
+```
+
+### The LocalizedRoute bridge
+
+If you prefer the spelling that mirrors Laravel, `LocalizedRoute::resource()` and `LocalizedRoute::apiResource()` do exactly the same, delegating to `LocalizedResource`:
+
+```php
+LocalizedRoute::resource('photos', ['en', 'es' => 'fotos'], PhotoController::class);
+LocalizedRoute::apiResource('photos', ['en', 'es' => 'fotos'], PhotoController::class);
+```
 
 ## How to Use Localized Routes in Views
 
