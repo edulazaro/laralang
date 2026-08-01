@@ -40,24 +40,26 @@ composer require edulazaro/laralang
 This will generate routes for `/dashboard` in English and `/es/panel` in Spanish:
 
 ```php
+use App\Http\Controllers\DashboardController;
 use EduLazaro\Laralang\LocalizedRoute;
 
 LocalizedRoute::get('dashboard', [
     'en',
     'es' => 'panel'
-], fn () => 'ok')->name('dashboard');
+], [DashboardController::class, 'index'])->name('dashboard');
 ```
 
 You can add any middleware as usual:
 
 
 ```php
+use App\Http\Controllers\DashboardController;
 use EduLazaro\Laralang\LocalizedRoute;
 
 LocalizedRoute::get('dashboard', [
     'en',
     'es' => 'panel'
-], fn () => 'ok')->middleware('auth')->name('dashboard');
+], [DashboardController::class, 'index'])->middleware('auth')->name('dashboard');
 ```
 
 
@@ -120,26 +122,27 @@ The `domains` array allows you to define custom domains for specific locales. If
 To register the localized routes, you can use the `LocalizedRoute::get()`, `LocalizedRoute::post()`, or any other HTTP verb method like Laravel's regular routes:
 
 ```php
+use App\Http\Controllers\ProfileController;
 use EduLazaro\Laralang\LocalizedRoute;
 
 // Define a localized GET route
 LocalizedRoute::get('profile', [
     'en',
     'es' => 'perfil'
-], fn () => 'Profile Page')->name('profile');
+], [ProfileController::class, 'show'])->name('profile');
 
 // Define a localized POST route
 LocalizedRoute::post('update-profile', [
     'en',
     'es' => 'actualizar-perfil'
-], fn () => 'Update Profile')->name('update-profile');
+], [ProfileController::class, 'update'])->name('update-profile');
 ```
 
 This is how it works:
 
 * The first parameter is the URI (e.g., `profile`, `dashboard`).
 * The second parameter is an associative array with the locale as the key and the localized URI as the value.
-* The third parameter is the regular closure or controller action.
+* The third parameter is the regular controller action or closure.
 
 Routes weill be created like:
 
@@ -150,11 +153,11 @@ As you can see, the language prefix will always be added at teh beginning. This 
 
 ```php
 Route::prefix('admin')->group(function () {
-    $localizedRoute = LocalizedRoute::get('profile', [
+    LocalizedRoute::get('profile', [
         'en',
-        'fr'
+        'fr',
         'es' => 'perfil'
-    ], fn () => 'ok')->name('dashboard');
+    ], [ProfileController::class, 'show'])->name('profile');
 });
 ```
 
@@ -226,8 +229,8 @@ The signature is:
 Laralang::alternates(array $params = [], bool $absolute = true): array
 ```
 
-- `$params` — override route parameters. Defaults to the current route's resolved parameters, so dynamic segments like `{slug}` are carried into every locale URL automatically.
-- `$absolute` — set to `false` for relative paths instead of absolute URLs (useful for sitemaps where you build the host yourself).
+- `$params`: override route parameters. Defaults to the current route's resolved parameters, so dynamic segments like `{slug}` are carried into every locale URL automatically.
+- `$absolute`: set to `false` for relative paths instead of absolute URLs (useful for sitemaps where you build the host yourself).
 
 Behaviour notes:
 
@@ -276,9 +279,9 @@ For specific sections of your app, you can fine-tune and assign different middle
 
 ### Idempotency
 
-All locale middlewares are idempotent. Applying `SetSmartLocale` to a group and using `LocalizedRoute` (which auto-attaches `SetRouteLocale` per route) is safe — the first middleware to run resolves the locale and the rest become no-ops. Build whatever middleware stack you need without worrying about double execution or duplicate redirects.
+All locale middlewares are idempotent. Applying `SetSmartLocale` to a group and using `LocalizedRoute` (which auto-attaches `SetRouteLocale` per route) is safe: the first middleware to run resolves the locale and the rest become no-ops. Build whatever middleware stack you need without worrying about double execution or duplicate redirects.
 
-If every route is created via `LocalizedRoute`, you do not need to add `SetSmartLocale` to your group — `SetRouteLocale` is already injected per route. Add `SetSmartLocale` only when you have a mix of localized and plain routes and want the plain ones to inherit the session/browser locale.
+If every route is created via `LocalizedRoute`, you do not need to add `SetSmartLocale` to your group, since `SetRouteLocale` is already injected per route. Add `SetSmartLocale` only when you have a mix of localized and plain routes and want the plain ones to inherit the session/browser locale.
 
 ### SetRouteLocale
 
@@ -287,13 +290,26 @@ This middleware will detect the locale from the URL prefix and apply it.
 If you have localized routes with prefixes (e.g., /es/dashboard), this middleware ensures the application locale matches the URL.
 
 ```php
+use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\ProfileController;
 use EduLazaro\Laralang\Http\Middleware\SetRouteLocale;
+use EduLazaro\Laralang\LocalizedRoute;
 
 Route::middleware(['web', SetRouteLocale::class])
     ->group(function () {
-        // routes with locale prefix
+        LocalizedRoute::get('dashboard', [
+            'en',
+            'es' => 'panel'
+        ], [DashboardController::class, 'index'])->name('dashboard');
+
+        LocalizedRoute::get('profile', [
+            'en',
+            'es' => 'perfil'
+        ], [ProfileController::class, 'show'])->name('profile');
     });
 ```
+
+Visiting `/es/panel` sets the application locale to `es` before the controller runs, so `__()`, dates and anything else locale aware already use Spanish. Visiting `/dashboard` does the same for the default locale.
 
 ### SetSessionLocale
 
@@ -302,13 +318,24 @@ This middleware applies the locale stored in the user session.
 Useful for internal routes like dashboards or admin panels, where the locale is determined once and stored in the session.
 
 ```php
+use App\Http\Controllers\Admin\OrderController;
 use EduLazaro\Laralang\Http\Middleware\SetSessionLocale;
 
-Route::middleware(['web', SetSessionLocale::class])
+Route::middleware(['web', 'auth', SetSessionLocale::class])
+    ->prefix('admin')
     ->group(function () {
-        // admin or internal routes
+        Route::get('orders', [OrderController::class, 'index'])->name('admin.orders');
+        Route::get('orders/{order}', [OrderController::class, 'show'])->name('admin.orders.show');
+
+        Route::post('locale/{locale}', function (string $locale) {
+            session()->put('locale', $locale);
+
+            return back();
+        })->name('admin.locale');
     });
 ```
+
+These URLs never change, whatever the language. The locale comes from `session('locale')`, which the language switcher writes, so the panel stays in the language the user picked until they pick another one.
 
 ### SetBrowserLocale
 
@@ -317,13 +344,18 @@ This middleware reads the locale from the browser's Accept-Language header only 
 On first visit, it detects the preferred browser language and stores it in the session. Good for public routes to auto-detect a first-time visitor's language and store it for subsequent requests.
 
 ```php
+use App\Http\Controllers\HomeController;
+use App\Http\Controllers\PricingController;
 use EduLazaro\Laralang\Http\Middleware\SetBrowserLocale;
 
 Route::middleware(['web', SetBrowserLocale::class])
     ->group(function () {
-        // public routes
+        Route::get('/', [HomeController::class, 'index'])->name('home');
+        Route::get('pricing', [PricingController::class, 'index'])->name('pricing');
     });
 ```
+
+A visitor arriving with `Accept-Language: es-ES` gets `/` in Spanish on the very first request, and the choice is stored in the session so the rest of the visit stays in Spanish.
 
 ### SetSmartLocale
 
@@ -337,19 +369,28 @@ It combines all the previous strategies in this priority order:
 If you want to apply localization globally without thinking about it, this middleware is for you.
 
 ```php
+use App\Http\Controllers\ContactController;
+use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\HomeController;
 use EduLazaro\Laralang\Http\Middleware\SetSmartLocale;
+use EduLazaro\Laralang\LocalizedRoute;
 
 Route::middleware(['web', SetSmartLocale::class])
     ->group(function () {
-        // all routes (public, admin, etc.)
+        // Localized: the URL prefix decides
+        LocalizedRoute::get('/', ['en', 'es'], [HomeController::class, 'index'])->name('home');
+
+        LocalizedRoute::get('contact', [
+            'en',
+            'es' => 'contacto'
+        ], [ContactController::class, 'show'])->name('contact');
+
+        // Plain: no prefix to read, so the session or the browser decides
+        Route::get('dashboard', [DashboardController::class, 'index'])->name('dashboard');
     });
 ```
 
-### SetRouteLocale
-
-This middleware will detect the locale from the URL prefix and apply it.
-
-If you have localized routes with prefixes (e.g., /es/dashboard), this middleware ensures the application locale matches the URL.
+`/es/contacto` runs in Spanish because of the prefix, and `/dashboard`, which has no prefix to read, falls back to the session and then to the browser language.
 
 ## Author
 
