@@ -119,7 +119,7 @@ The `domains` array allows you to define custom domains for specific locales. If
 
 ## How to Register Localized Routes
 
-To register the localized routes, you can use the `LocalizedRoute::get()`, `LocalizedRoute::post()`, or any other HTTP verb method like Laravel's regular routes:
+Use `LocalizedRoute::get()`, `LocalizedRoute::post()`, `LocalizedRoute::patch()`, `LocalizedRoute::delete()` or `LocalizedRoute::match()`, the same way you would use Laravel's regular routes:
 
 ```php
 use App\Http\Controllers\ProfileController;
@@ -138,34 +138,46 @@ LocalizedRoute::post('update-profile', [
 ], [ProfileController::class, 'update'])->name('update-profile');
 ```
 
+Assuming `en` is your default locale, those two calls register four routes:
+
+| Method | URL | Route name |
+|---|---|---|
+| GET | `/profile` | `en.profile` |
+| GET | `/es/perfil` | `es.profile` |
+| POST | `/update-profile` | `en.update-profile` |
+| POST | `/es/actualizar-perfil` | `es.update-profile` |
+
 This is how it works:
 
-* The first parameter is the URI (e.g., `profile`, `dashboard`).
-* The second parameter is an associative array with the locale as the key and the localized URI as the value.
+* The first parameter is the URI, and it is the one used for any locale listed without a translation.
+* The second parameter lists the locales. A bare value like `'en'` reuses the first parameter, and `'es' => 'perfil'` gives that locale its own path.
 * The third parameter is the regular controller action or closure.
+* The default locale gets no prefix, and every other locale is prefixed with its code unless you configure a different prefix.
 
-Routes weill be created like:
+### Inside a route group
 
-* /admin/dashboard (for English)
-* /es/admin/panel (for Spanish)
-
-As you can see, the language prefix will always be added at teh beginning. This will happen even when using groups with prefixes:
+The locale prefix always goes first, before any prefix coming from the group:
 
 ```php
+use App\Http\Controllers\DashboardController;
+use EduLazaro\Laralang\LocalizedRoute;
+
 Route::prefix('admin')->group(function () {
-    LocalizedRoute::get('profile', [
+    LocalizedRoute::get('dashboard', [
         'en',
         'fr',
-        'es' => 'perfil'
-    ], [ProfileController::class, 'show'])->name('profile');
+        'es' => 'panel'
+    ], [DashboardController::class, 'index'])->name('admin.dashboard');
 });
 ```
 
-These routes will be created:
+| URL | Route name |
+|---|---|
+| `/admin/dashboard` | `en.admin.dashboard` |
+| `/fr/admin/dashboard` | `fr.admin.dashboard` |
+| `/es/admin/panel` | `es.admin.dashboard` |
 
-* /admin/profile (for English)
-* /fr/admin/profile (for French)
-* /es/admin/perfil (for Spanish)
+Note that `fr` reuses `dashboard` because it was listed without a translation, while `es` uses its own `panel`. Group middleware, name prefixes and everything else you chain on the group keep working as usual.
 
 
 ## How to Use Localized Routes in Views
