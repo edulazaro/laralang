@@ -1,3 +1,5 @@
+![Laralang](art/banner.png)
+
 # Laralang for Laravel
 
 <p align="center">
@@ -349,6 +351,10 @@ This middleware will detect the locale from the URL prefix and apply it.
 
 If you have localized routes with prefixes (e.g., /es/dashboard), this middleware ensures the application locale matches the URL.
 
+## Author
+
+Created by [Edu Lazaro](https://edulazaro.com)
+
 ## License
 
-Larakeep is open-sourced software licensed under the [MIT license](LICENSE.md).
+Laralang is open-sourced software licensed under the [MIT license](LICENSE.md).
