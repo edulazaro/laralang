@@ -4,6 +4,7 @@ namespace EduLazaro\Laralang\Tests\Unit;
 
 use EduLazaro\Laralang\LocalizedRoute;
 use EduLazaro\Laralang\Tests\TestCase;
+use Illuminate\Routing\Router;
 use Illuminate\Support\Facades\Route;
 
 class HttpVerbsTest extends TestCase
@@ -17,6 +18,7 @@ class HttpVerbsTest extends TestCase
             'patch' => ['patch', ['PATCH']],
             'delete' => ['delete', ['DELETE']],
             'options' => ['options', ['OPTIONS']],
+            'any' => ['any', ['GET', 'HEAD', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS']],
         ];
     }
 
@@ -58,6 +60,38 @@ class HttpVerbsTest extends TestCase
 
         $this->assertEqualsCanonicalizing(['PUT', 'PATCH'], $routes->getByName('en.profile')->methods());
         $this->assertEqualsCanonicalizing(['PUT', 'PATCH'], $routes->getByName('es.profile')->methods());
+    }
+
+    public function test_any_registers_one_route_per_locale_answering_every_verb()
+    {
+        $before = count(Route::getRoutes()->getRoutes());
+
+        LocalizedRoute::any('webhook', [
+            'en',
+            'es' => 'gancho',
+        ], fn () => 'ok')->name('webhook');
+
+        $routes = Route::getRoutes();
+        $routes->refreshNameLookups();
+
+        $this->assertCount(2, array_slice($routes->getRoutes(), $before));
+
+        $this->assertEquals('webhook', $routes->getByName('en.webhook')->uri());
+        $this->assertEquals('es/gancho', $routes->getByName('es.webhook')->uri());
+
+        $this->assertEqualsCanonicalizing(Router::$verbs, $routes->getByName('es.webhook')->methods());
+    }
+
+    public function test_any_follows_laravel_verb_list()
+    {
+        LocalizedRoute::any('webhook', ['en'], fn () => 'ok')->name('webhook');
+
+        Route::getRoutes()->refreshNameLookups();
+
+        $this->assertEqualsCanonicalizing(
+            Router::$verbs,
+            Route::getRoutes()->getByName('en.webhook')->methods()
+        );
     }
 
     public function test_get_routes_also_answer_head()

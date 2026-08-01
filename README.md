@@ -13,6 +13,8 @@ Laralang is a Laravel package that allows you to create localized routes for dif
 
 With Laralang, you can define a route for each language, and the package will automatically generate routes for the specified locales. It provides an efficient way to handle localized URIs and ensures that the URL structure is properly mapped to the language-specific paths.
 
+Coming from another localization package? See the migration guides for [mcamara/laravel-localization](MIGRATING-FROM-MCAMARA.md) and [niels-numbers/laravel-localizer](MIGRATING-FROM-LARAVEL-LOCALIZER.md).
+
 ## Features
 
 - Define multilingual routes with one simple API.
@@ -119,7 +121,7 @@ The `domains` array allows you to define custom domains for specific locales. If
 
 ## How to Register Localized Routes
 
-Use `LocalizedRoute::get()`, `LocalizedRoute::post()`, `LocalizedRoute::put()`, `LocalizedRoute::patch()`, `LocalizedRoute::delete()`, `LocalizedRoute::options()` or `LocalizedRoute::match()`, the same way you would use Laravel's regular routes:
+Use `LocalizedRoute::get()`, `LocalizedRoute::post()`, `LocalizedRoute::put()`, `LocalizedRoute::patch()`, `LocalizedRoute::delete()`, `LocalizedRoute::options()`, `LocalizedRoute::any()` or `LocalizedRoute::match()`, the same way you would use Laravel's regular routes:
 
 ```php
 use App\Http\Controllers\ProfileController;
@@ -153,6 +155,29 @@ This is how it works:
 * The second parameter lists the locales. A bare value like `'en'` reuses the first parameter, and `'es' => 'perfil'` gives that locale its own path.
 * The third parameter is the regular controller action or closure.
 * The default locale gets no prefix, and every other locale is prefixed with its code unless you configure a different prefix.
+
+### Matching several methods
+
+`match()` takes the list of HTTP methods as its first parameter, and `any()` registers the route for all of them:
+
+```php
+use App\Http\Controllers\WebhookController;
+use EduLazaro\Laralang\LocalizedRoute;
+
+LocalizedRoute::match(['PUT', 'PATCH'], 'profile', [
+    'en',
+    'es' => 'perfil'
+], [ProfileController::class, 'update'])->name('profile.update');
+
+LocalizedRoute::any('webhook', [
+    'en',
+    'es' => 'gancho'
+], [WebhookController::class, 'handle'])->name('webhook');
+```
+
+`any()` still registers one route per locale, and each of them answers every verb (`GET`, `HEAD`, `POST`, `PUT`, `PATCH`, `DELETE` and `OPTIONS`), exactly like Laravel's `Route::any()`. The list comes from Laravel itself, so it stays in sync if a verb is ever added.
+
+Keep in mind the usual caveats of `any()`: a route registered with it shadows a later route for the same URI, and it answers 200 to verbs that would otherwise return 405.
 
 ### Inside a route group
 
