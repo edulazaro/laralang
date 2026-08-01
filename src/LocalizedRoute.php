@@ -4,6 +4,8 @@ namespace EduLazaro\Laralang;
 
 use Illuminate\Routing\Router;
 use Illuminate\Support\Facades\Route;
+use EduLazaro\Laralang\Routing\LocalePrefixes;
+use EduLazaro\Laralang\Routing\LocalizedFallback;
 use EduLazaro\Laralang\Routing\Route as LaravelRoute;
 use EduLazaro\Laralang\Http\Middleware\SetRouteLocale;
 
@@ -27,8 +29,6 @@ class LocalizedRoute
      */
     public function __construct(array $locales, array $methods, string $uri, $action)
     {
-        $defaultLocale = config('app.locale');
-        $prefixes = config('locales.prefixes', []);
         //$groupPrefix = trim(Route::getLastGroupPrefix() ?? '', '/');
         $groupPrefix = collect(Route::getGroupStack())
             ->pluck('prefix')
@@ -44,8 +44,7 @@ class LocalizedRoute
                 $customTranslation = $uri;
             }
 
-            $isDefault = $locale === $defaultLocale;
-            $prefix = $prefixes[$locale] ?? ($isDefault ? '' : $locale);
+            $prefix = LocalePrefixes::get($locale);
 
             $segments = array_filter([
                 $prefix,
@@ -186,6 +185,20 @@ class LocalizedRoute
     public static function options(string $uri, array $locales, $action)
     {
         return new self($locales, ['OPTIONS'], $uri, $action);
+    }
+
+    /**
+     * Registers the localized fallback route, which rescues a URL that exists
+     * under another locale before it becomes a 404.
+     *
+     * Place it where you want it to sit among your own fallbacks: the first
+     * registered fallback is the one Laravel runs.
+     *
+     * @return \Illuminate\Routing\Route
+     */
+    public static function fallback()
+    {
+        return Route::fallback(LocalizedFallback::class);
     }
 
     /**

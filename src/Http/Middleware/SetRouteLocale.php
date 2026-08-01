@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\App;
 use Symfony\Component\HttpFoundation\Response;
 use EduLazaro\Laralang\Http\Middleware\SetSessionLocale;
+use EduLazaro\Laralang\Routing\LocalePrefixes;
 
 class SetRouteLocale
 {
@@ -33,7 +34,11 @@ class SetRouteLocale
         $defaultLocale = config('app.locale', config('app.fallback_locale', 'en'));
         $segment = $request->segment(1);
 
-        if ($segment === $defaultLocale) {
+        // The default locale normally lives at the root, so its prefix is
+        // redundant and redirected away to keep a single canonical URL. When it
+        // is configured with a prefix of its own, that prefix is the canonical
+        // one and there is nothing to strip.
+        if ($segment === $defaultLocale && LocalePrefixes::get($defaultLocale) === '') {
             return redirect()->to($this->removePrefixFromUri($request->getRequestUri(), $segment), 301);
         }
 

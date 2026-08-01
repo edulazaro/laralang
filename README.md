@@ -26,7 +26,7 @@ Coming from another localization package? There is a migration guide for each on
 - Define multilingual routes with one simple API.
 - Automatic locale redirection via usual `route` helper.
 - Redirect to any specific locale also via the `route` helper.
-- Support for Ziggy 1 and Ziggy 2
+- Support for Ziggy 2
 
 ## Requirements
 
@@ -114,6 +114,38 @@ The `prefixes` array allows you to specify custom URL prefixes for each locale. 
     'fr' => 'fr', // 'fr' prefix for French (URL: /fr)
 ],
 ```
+
+**The default language never carries a prefix.** It is the one in `config('app.locale')`, not the first entry of the `locales` array, so with `APP_LOCALE=es` it is Spanish that lives at the root and English that gets prefixed. `SetRouteLocale` enforces it too: a first segment matching the default locale is redirected with a `301` to the same URL without it, so there is a single canonical URL per page.
+
+The rule is short: **a value is the literal prefix, and without one the locale code is used**. A missing key, `null` and an empty string all count as no value.
+
+| Value | Default language | Any other language |
+|---|---|---|
+| key missing, `null` or `''` | no prefix | its own code, `/fr` |
+| `'anything'` | that literal, `/anything` | that literal, `/anything` |
+
+Only the default language can live at the root, so two locales can never end up sharing the same URLs.
+
+### Prefixing every language
+
+By default the language in `config('app.locale')` lives at the root, and a URL that repeats its prefix is redirected there with a `301`, so each page has a single canonical URL.
+
+Give the default language a prefix of its own and that stops: every language gets one, and nothing lives at the root.
+
+```php
+'prefixes' => [
+    'en' => 'en',   // /en/about
+    'es' => 'es',   // /es/sobre-nosotros
+],
+```
+
+Since no route is registered at `/` any more, turn the localized fallback on so the root has somewhere to go:
+
+```php
+'fallback' => true,
+```
+
+It sends the visitor to their own language, taken from their stored choice and then from `Accept-Language`, falling back to the default. That redirect is a `302` with `Vary: Accept-Language`, never a `301`, because the destination depends on who is asking and a permanent one would be cached and pin a single language for everyone behind it.
 
 ### Domain Settings  (Future Support)
 
@@ -385,6 +417,50 @@ request()->routeIs('services*');      // true on es.services.show, fr.services.c
 ```
 
 The previous `routeIs('*.services')` workaround still works.
+
+## Localized Fallback
+
+A URL is often shared or linked without its locale prefix, or with the wrong one. `/servicios` reaches an application that is running in English, `/es/services` reaches one that expects the Spanish path. Both are a 404 by default, and both are a page you already have.
+
+Turn the rescue on in the config:
+
+```php
+// config/locales.php
+'fallback' => true,
+```
+
+From then on, a URL that matches no route but does exist under another locale is redirected there with a `301`:
+
+| Requested | Rescued to |
+|---|---|
+| `/servicios` | `/es/servicios` |
+| `/fr/servicios` | `/es/servicios` |
+| `/es/services` | `/services` |
+| `/propiedad/piso-centro` | `/es/propiedad/piso-centro` |
+
+Route parameters are honoured, since the candidate URL is handed to the router instead of being compared as a string, and the query string travels along untouched.
+
+Anything that cannot be rescued keeps returning the 404 it deserves, and the check only ever runs once the router has already failed, so normal traffic costs nothing.
+
+### Which locale wins
+
+Locales are tried with the default one first, then in the order of `locales.locales`. That way the destination depends only on the path and never on the visitor, which is what makes a permanent redirect safe: a `301` gets cached by browsers and CDNs, so a destination that changed with the visitor's language would pin one language for everyone behind the cache.
+
+### If your application has its own fallback
+
+Laravel runs the first fallback route registered, so leave the config off and place the rescue yourself, before yours:
+
+```php
+use EduLazaro\Laralang\LocalizedRoute;
+
+LocalizedRoute::fallback();
+
+Route::fallback([ErrorController::class, 'notFound']);
+```
+
+When the rescue finds nothing it throws the usual `NotFoundHttpException`, so your own error handling still takes over.
+
+Note that Laravel registers fallback routes for `GET` only, which is what you want here: a redirect would drop the body of anything else.
 
 ## Middleware
 

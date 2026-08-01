@@ -28,6 +28,26 @@ class LaralangServiceProvider extends ServiceProvider
         // Register signed_localized middleware alias
         $router = $this->app['router'];
         $router->aliasMiddleware('signed_localized', ValidateLocalizedSignature::class);
+
+        $this->registerLocalizedFallback();
+    }
+
+    /**
+     * Register the localized fallback route when the application opted in.
+     *
+     * Applications with a fallback route of their own should leave the config
+     * off and call LocalizedRoute::fallback() where they want it, since the
+     * first fallback registered is the one that runs.
+     *
+     * @return void
+     */
+    protected function registerLocalizedFallback()
+    {
+        if (! config('locales.fallback', false)) {
+            return;
+        }
+
+        LocalizedRoute::fallback();
     }
 
     /**

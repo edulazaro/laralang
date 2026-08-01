@@ -102,11 +102,16 @@ jobs:
 
       - name: Install dependencies
         run: |
-          composer require \
-            "laravel/framework:${{ matrix.laravel }}" \
-            "orchestra/testbench:${{ matrix.testbench }}" \
-            --no-interaction --no-update
-          composer update --prefer-dist --no-interaction --no-progress
+          # Older Laravel majors carry open security advisories and newer
+          # Composer refuses to install them, but CI has to be able to resolve
+          # every major the package claims to support. Written straight into
+          # composer.json so it works whatever Composer version the runner ships.
+          php -r '$c = json_decode(file_get_contents("composer.json"), true);
+                  $c["config"]["policy"]["advisories"]["block"] = false;
+                  file_put_contents("composer.json", json_encode($c, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES));'
+          composer require "laravel/framework:${{ matrix.laravel }}" --no-interaction --no-update
+          composer require --dev "orchestra/testbench:${{ matrix.testbench }}" --no-interaction --no-update
+          composer update --prefer-dist --no-interaction --no-progress --with-all-dependencies
 
       - name: Run tests
         run: vendor/bin/phpunit
@@ -142,12 +147,18 @@ jobs:
 
       - name: Install dependencies
         run: |
+          # Older Laravel majors carry open advisories and newer Composer
+          # refuses to install them. Written straight into composer.json so it
+          # works whatever Composer version the runner ships.
+          php -r '$c = json_decode(file_get_contents("composer.json"), true);
+                  $c["config"]["policy"]["advisories"]["block"] = false;
+                  file_put_contents("composer.json", json_encode($c, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES));'
           composer config minimum-stability dev
           composer config prefer-stable true
           if [ -n "${{ matrix.laravel }}" ]; then
             composer require "laravel/framework:${{ matrix.laravel }}" --no-interaction --no-update
           fi
-          composer update --prefer-dist --no-interaction --no-progress --ignore-platform-req=php+
+          composer update --prefer-dist --no-interaction --no-progress --with-all-dependencies --ignore-platform-req=php+
 
       - name: Run tests
         run: vendor/bin/phpunit

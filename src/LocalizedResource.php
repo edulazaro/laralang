@@ -6,6 +6,7 @@ use Illuminate\Routing\PendingResourceRegistration;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Str;
 use EduLazaro\Laralang\Http\Middleware\SetRouteLocale;
+use EduLazaro\Laralang\Routing\LocalePrefixes;
 
 /**
  * Class LocalizedResource
@@ -37,9 +38,6 @@ class LocalizedResource
      */
     public function __construct(string $name, array $locales, $controller, bool $api = false)
     {
-        $defaultLocale = config('app.locale');
-        $prefixes = config('locales.prefixes', []);
-
         $parameter = $this->parameterFor($name);
 
         foreach ($locales as $locale => $definition) {
@@ -51,9 +49,7 @@ class LocalizedResource
             $uri = is_array($definition) ? ($definition['uri'] ?? $name) : $definition;
             $verbs = is_array($definition) ? ($definition['verbs'] ?? []) : [];
 
-            $isDefault = $locale === $defaultLocale;
-
-            $this->prefixes[$locale] = $prefixes[$locale] ?? ($isDefault ? '' : $locale);
+            $this->prefixes[$locale] = LocalePrefixes::get($locale);
             $this->verbs[$locale] = $verbs;
 
             $options = [
