@@ -155,7 +155,19 @@ Those redirects are computed from `prefixes` and the order of `locales`, so chan
 
 The painful case is exactly this section. A site runs with English at the root, so `/en/about` has been answering `301` to `/about` for months. You then prefix every language, and `/en/about` becomes the canonical URL. A returning visitor requests it, their browser applies the cached redirect without asking, and lands on `/about`, which no longer exists. With the localized fallback on it is worse than a 404: `/about` is rescued back to `/en/about`, the cached redirect fires again, and the browser gives up with a redirect loop.
 
-There is no way to revoke a `301` that is already out there, so treat the shape of your URLs as a decision to make before launch. If you have to change it anyway, expect returning visitors to carry stale redirects until their cache expires, and consider turning the fallback off during the transition so they get a plain 404 instead of a loop.
+A `301` that is already out there cannot be revoked, so treat the shape of your URLs as a decision to make before launch. If you have to change it anyway, consider turning the fallback off during the transition, so a visitor with a stale redirect gets a plain 404 instead of a loop.
+
+What you can bound is how long that lasts. Every permanent redirect the package emits carries an explicit lifetime, so a returning visitor holds a stale one for at most that long instead of forever.
+
+### Redirect cache lifetime
+
+```php
+'redirect_max_age' => 86400,   // seconds
+```
+
+Sets the `Cache-Control: max-age` of the permanent redirects, the one that strips a redundant default locale prefix and the fallback rescue. It exists for the reason described just above: those destinations are computed from `prefixes` and the order of `locales`, and without an explicit lifetime a browser caches them heuristically, in practice for as long as it feels like.
+
+A day is a good default while your URLs are still moving. Raise it once they are settled, since the redirect is stable and revalidating costs a request. The `302` at the root is never cached: it carries `no-store`, because its destination depends on the visitor.
 
 
 ## How to Register Localized Routes
