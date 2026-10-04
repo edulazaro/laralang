@@ -69,6 +69,10 @@ class LocalizedRoute
             );
 
             $route->setContainer(app());
+            // Without its router, anything asking the route for its group stack fails:
+            // a string action ("Controller@method", an invokable class) and Livewire's
+            // page components both do.
+            $route->setRouter(app('router'));
             $route->middleware([SetRouteLocale::class]);
 
             $router = app('router');
